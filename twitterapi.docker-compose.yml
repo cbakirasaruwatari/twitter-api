@@ -2,51 +2,76 @@ version: '3'
 services:
   db: 
     hostname: db
+    container_name: db
     build:
       context: .
       dockerfile: ./db.Dockerfile 
     # env_file:
     #   - ./.env
     volumes:
-      - ./db/mysql/db:/docker-entrypoint-initdb.d
+      - ./data/mysql/db/init:/docker-entrypoint-initdb.d
+      - ./data/mysql/db/persistence:/var/lib/mysql 
     environment:
-      - MYSQL_ROOT_PASSWORD=mysql 
+      - MYSQL_ROOT_PASSWORD=mysql
+    ports:
+      - "11106:3306"
   quieingdb: 
     hostname: quieingdb
+    container_name: quieingdb
     build:
       context: .
       dockerfile: ./quieingdb.Dockerfile 
-    env_file:
-      - ./.env
+    # env_file:
+    #   - ./.env
     volumes:
-      - ./db/mysql/quieingdb:/docker-entrypoint-initdb.d
+      - ./data/mysql/quieingdb/init:/docker-entrypoint-initdb.d
+      - ./data/mysql/quieingdb/persistence:/var/lib/mysql      
     environment:
       - MYSQL_ROOT_PASSWORD=mysql
+    ports:
+      - "21106:3306"
     depends_on: 
       - db
   userapi:
     hostname: userapi
+    container_name: userapi
     build:
       context: .
       dockerfile: ./twitter_api.Dockerfile
     volumes:
       - ./source/base:/source/base
-      - ./source/base:/source/user
+      - ./source/resource:/source/resource
+      - ./source/user:/source/user
     user: root
-    # environment:
     env_file:
-      - ./.env
+      - ./.api.env
+      - ./.db.env
+    environment:
+      - MYSQL_ROOT_PASSWORD=mysql      
+    depends_on: 
+      - db
+      - quieingdb
+    tty: True
   tweetapi:
     hostname: tweetapi
+    container_name: tweetapi
     build:
       context: .
       dockerfile: ./twitter_api.Dockerfile
     volumes:
       - ./source/base:/source/base
-      - ./source/base:/source/tweet
+      - ./source/resource:/source/resource
+      - ./source/tweet:/source/tweet
     user: root
-    # environment:
     env_file:
-      - ./.env
+      - ./.api.env
+      - ./.db.env    
+    environment:
+      - MYSQL_ROOT_PASSWORD=mysql        
+    depends_on: 
+      - db
+      - quieingdb
+    tty: True
+    
 
 
