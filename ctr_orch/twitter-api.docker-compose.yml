@@ -1,0 +1,74 @@
+# netowork settings
+x-var: &DEFAULT_NETWORK_NAME
+  twitter-api
+x-var: &DATA_NETWORK_NAME
+  lake
+
+# DB settings
+x-var: &PERSISTENT_DB_NAME
+  twitter-persistent-db
+x-var: &PERSISTENT_DB_IMAGE_VERSION
+  twitter-persistent-db:latest
+
+# api settings
+x-var: &USER_API_NAME
+  user-api
+x-var: &USER_API_ENV_PATH
+  ../ctr/twitter_api/resource/run/.env
+x-var: &USER_API_SOURCE_PATH
+  ../src/twitter_api:/home
+x-var: &USER_API_PERSISTENT_DB_HOST
+  PERSISTANCE_DB_HOST=twitter-persistent-db
+
+version: '3.5'
+networks:
+  *DATA_NETWORK_NAME:
+    external: True
+  default:
+    name: *DEFAULT_NETWORK_NAME
+    external: False
+
+services:
+  *PERSISTENT_DB_NAME:
+    hostname: *PERSISTENT_DB_NAME
+    image: *PERSISTENT_DB_IMAGE_VERSION
+    build:
+      context: ../ctr/persistent_db
+      dockerfile: db_mysql.Dockerfile
+    container_name: *PERSISTENT_DB_NAME
+    volumes:
+      - ../ctr/persistent_db/twitter_api/run/initdb.d:/docker-entrypoint-initdb.d
+      - ../ctr/persistent_db/twitter_api/run/data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=mysql
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - TZ=Asia/Tokyo
+    ports:
+      - "11106:3306"
+    restart: unless-stopped
+    networks:
+      - default
+      - *DATA_NETWORK_NAME
+
+  *USER_API_NAME:
+    hostname: *USER_API_NAME
+    image: *USER_API_NAME
+    build:
+      context: ../ctr/twitter_api
+      dockerfile: twitter_api_python.Dockerfile
+    volumes:
+      - *USER_API_SOURCE_PATH
+    env_file:
+      - *USER_API_ENV_PATH
+    environment: 
+      - *USER_API_PERSISTENT_DB_HOST
+      - PERSISTANCE_DB_PORT=3306
+      - PERSISTANCE_DB_USER=root
+      - PERSISTANCE_DB_PASSWORD=mysql
+    user: root
+    working_dir: /home
+    networks:
+      - default
+    depends_on: 
+      - *PERSISTENT_DB_NAME
+    tty: True

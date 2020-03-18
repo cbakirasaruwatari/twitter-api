@@ -1,0 +1,10 @@
+*.env
+ctr/persistent_db/*/run/data
+ctr/persistent_db/*/run/initdb.d/!.gitkeep
+src/twitter_api/__pycache__
+src/twitter_api/*/__pycache__
+src/etl
+
+# temp
+src/twitter_api
+ctr/etl
