@@ -6,5 +6,7 @@ src/twitter_api/*/__pycache__
 src/etl
 
 # temp
-src/twitter_api
 ctr/etl
+src/base
+src/twitter_api/resource
+src/twitter_api/base

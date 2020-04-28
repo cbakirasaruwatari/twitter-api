@@ -5,4 +5,6 @@ FROM python:${PYTHON_VERSION}
 RUN pip install \
     'tweepy==3.8.0' \
     'mysql-connector-python==8.0.19' \
-    'boto3==1.12.7' 
+    'boto3==1.12.7' \
+    'SQLAlchemy==1.3.13' \
+    'PyMySQL==0.9.3'

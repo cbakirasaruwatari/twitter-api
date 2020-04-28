@@ -10,14 +10,28 @@ x-var: &PERSISTENT_DB_NAME
 x-var: &PERSISTENT_DB_IMAGE_VERSION
   twitter-persistent-db:latest
 
-# api settings
+# user api settings
 x-var: &USER_API_NAME
   user-api
+x-var: &USER_API_IMAGE_VERSION
+  twitter-user-api:latest
 x-var: &USER_API_ENV_PATH
   ../ctr/twitter_api/resource/run/.env
 x-var: &USER_API_SOURCE_PATH
   ../src/twitter_api:/home
 x-var: &USER_API_PERSISTENT_DB_HOST
+  PERSISTANCE_DB_HOST=twitter-persistent-db
+
+# tweet api settings
+x-var: &TWEET_API_NAME
+  tweet-api
+x-var: &TWEET_API_IMAGE_VERSION
+  twitter-tweet-api:latest
+x-var: &TWEET_API_ENV_PATH
+  ../ctr/twitter_api/resource/run/.env
+x-var: &TWEET_API_SOURCE_PATH
+  ../src/twitter_api:/home
+x-var: &TWEET_API_PERSISTENT_DB_HOST
   PERSISTANCE_DB_HOST=twitter-persistent-db
 
 version: '3.5'
@@ -71,4 +85,27 @@ services:
       - default
     depends_on: 
       - *PERSISTENT_DB_NAME
-    tty: True
+    # tty: True
+
+  *TWEET_API_NAME:
+    hostname: *TWEET_API_NAME
+    image: *TWEET_API_NAME
+    build:
+      context: ../ctr/twitter_api
+      dockerfile: twitter_api_python.Dockerfile
+    volumes:
+      - *TWEET_API_SOURCE_PATH
+    env_file:
+      - *TWEET_API_ENV_PATH
+    environment: 
+      - *TWEET_API_PERSISTENT_DB_HOST
+      - PERSISTANCE_DB_PORT=3306
+      - PERSISTANCE_DB_USER=root
+      - PERSISTANCE_DB_PASSWORD=mysql
+    user: root
+    working_dir: /home
+    networks:
+      - default
+    depends_on: 
+      - *PERSISTENT_DB_NAME
+    # tty: True
